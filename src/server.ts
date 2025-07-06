@@ -14,14 +14,17 @@ const app = express();
 const port = process.env.PORT || 5001;
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Configure CORS - more permissive for development
+// Configure CORS - use environment variable if available
 const corsOptions = {
-  origin: '*', // Allow all origins for easier development
+  origin: process.env.CORS_ORIGIN || '*', // Use configured origin or allow all origins as fallback
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-csrf-token'],
   credentials: true,
   maxAge: 86400 // 24 hours
 };
+
+// Log CORS configuration
+console.log(`CORS configured with origin: ${process.env.CORS_ORIGIN || '*'}`);
 
 // Middleware
 app.use(cors(corsOptions));
@@ -82,7 +85,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     // Start server
     app.listen(port, () => {
       console.log(`Sales microservice is running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
-      console.log(`CORS configured to allow all origins (*) for easier development`);
+      console.log(`CORS configured for origin: ${process.env.CORS_ORIGIN || 'all origins (*)'}`);
     });
   } catch (error) {
     console.error('Failed to initialize server:', error);

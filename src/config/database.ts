@@ -4,6 +4,15 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+// Log database configuration (without sensitive info)
+console.log('Database configuration:', {
+  server: process.env.AZURE_SQL_SERVER || 'Not set',
+  database: process.env.AZURE_SQL_DATABASE || 'Not set',
+  user: process.env.AZURE_SQL_USER || 'Not set',
+  port: process.env.AZURE_SQL_PORT || '1433',
+  // Not logging password for security reasons
+});
+
 // Database configuration
 const config: mssql.config = {
   server: process.env.AZURE_SQL_SERVER || '',
@@ -66,8 +75,10 @@ const db = {
    */
   ensureConnection: async (): Promise<boolean> => {
     try {
+      console.log('Testing database connection...');
       await poolConnect;
       const result = await pool.request().query('SELECT 1 as connected');
+      console.log('Database connection test result:', result.recordset[0]);
       return result.recordset[0].connected === 1;
     } catch (error) {
       console.error('Database connection error:', error);
