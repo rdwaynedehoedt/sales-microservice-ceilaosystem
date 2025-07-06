@@ -56,6 +56,7 @@ router.post('/', validateSalesAuth, async (req: Request, res: Response) => {
     // Log the client data being sent to the database
     console.log(`Creating client for sales rep ID: ${salesRepId} (${req.user.email})`);
     
+    // Create the client
     const newClient = await ClientModel.createClient(clientData);
     
     res.status(201).json({ 
@@ -65,16 +66,9 @@ router.post('/', validateSalesAuth, async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error creating client:', error);
-    
-    // Provide more detailed error information
-    let errorMessage = 'Failed to create client';
-    if (error instanceof Error) {
-      errorMessage += `: ${error.message}`;
-    }
-    
     res.status(500).json({ 
       success: false, 
-      message: errorMessage 
+      message: 'Failed to create client' 
     });
   }
 });
@@ -120,6 +114,61 @@ router.get('/recent', validateSalesAuth, async (req: Request, res: Response) => 
     res.status(500).json({ 
       success: false, 
       message: 'Failed to get recent clients' 
+    });
+  }
+});
+
+/**
+ * @route   GET /api/sales/clients
+ * @desc    Get all clients for the current sales rep with pagination and search
+ * @access  Private (sales, admin)
+ */
+router.get('/', validateSalesAuth, async (req: Request, res: Response) => {
+  try {
+    // Get pagination and search parameters from query
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string) : 10;
+    const search = req.query.search as string | undefined;
+    
+    // Ensure we have a valid user ID
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'User ID not found in authentication data'
+      });
+    }
+    
+    // Get clients for the current sales rep
+    console.log(`Getting clients for sales rep ID: ${req.user.id}, page: ${page}, search: ${search || 'none'}`);
+    const { clients, total } = await ClientModel.getAllClientsBySalesRep(
+      req.user.id,
+      page,
+      pageSize,
+      search
+    );
+    
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(total / pageSize);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+    
+    res.status(200).json({
+      success: true,
+      data: clients,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasNextPage,
+        hasPrevPage
+      }
+    });
+  } catch (error) {
+    console.error('Error getting clients:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get clients'
     });
   }
 });

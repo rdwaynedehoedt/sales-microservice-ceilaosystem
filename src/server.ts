@@ -14,26 +14,29 @@ const app = express();
 const port = process.env.PORT || 5001;
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Configure CORS
+// Configure CORS - more permissive for development
 const corsOptions = {
-  origin: isProduction 
-    ? [process.env.CORS_ORIGIN || '', /\.choreoapis\.dev$/] 
-    : '*',
+  origin: '*', // Allow all origins for easier development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-csrf-token'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
 };
 
 // Middleware
 app.use(cors(corsOptions));
 app.use(helmet({
   contentSecurityPolicy: false, // Disabled for development, consider enabling for production
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin resource sharing
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging
 app.use(requestLogger);
+
+// Add preflight OPTIONS handling for all routes
+app.options('*', cors(corsOptions));
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -79,6 +82,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     // Start server
     app.listen(port, () => {
       console.log(`Sales microservice is running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
+      console.log(`CORS configured to allow all origins (*) for easier development`);
     });
   } catch (error) {
     console.error('Failed to initialize server:', error);

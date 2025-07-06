@@ -150,5 +150,97 @@ export default {
       console.error('Error getting clients by creator:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get all clients for a sales rep with pagination and optional search
+   */
+  getAllClientsBySalesRep: async (
+    salesRepId: string, 
+    page: number = 1, 
+    pageSize: number = 10, 
+    search?: string
+  ): Promise<{clients: Client[], total: number}> => {
+    try {
+      // Convert string ID to number
+      const numericSalesRepId = parseInt(salesRepId);
+      if (isNaN(numericSalesRepId)) {
+        throw new Error(`Invalid sales rep ID: ${salesRepId}`);
+      }
+
+      // Calculate offset for pagination
+      const offset = (page - 1) * pageSize;
+      
+      let countQuery: string;
+      let dataQuery: string;
+      let params: any[] = [numericSalesRepId];
+      
+      if (search && search.trim() !== '') {
+        // Add search parameter
+        params.push(`%${search}%`);
+        
+        // Count query with search
+        countQuery = `
+          SELECT COUNT(*) as total
+          FROM clients 
+          WHERE sales_rep_id = @param0
+          AND (
+            client_name LIKE @param1 OR
+            email LIKE @param1 OR
+            mobile_no LIKE @param1 OR
+            product LIKE @param1 OR
+            insurance_provider LIKE @param1 OR
+            policy_no LIKE @param1
+          )
+        `;
+        
+        // Data query with search
+        dataQuery = `
+          SELECT *
+          FROM clients 
+          WHERE sales_rep_id = @param0
+          AND (
+            client_name LIKE @param1 OR
+            email LIKE @param1 OR
+            mobile_no LIKE @param1 OR
+            product LIKE @param1 OR
+            insurance_provider LIKE @param1 OR
+            policy_no LIKE @param1
+          )
+          ORDER BY created_at DESC
+          OFFSET ${offset} ROWS
+          FETCH NEXT ${pageSize} ROWS ONLY
+        `;
+      } else {
+        // Count query without search
+        countQuery = `
+          SELECT COUNT(*) as total
+          FROM clients 
+          WHERE sales_rep_id = @param0
+        `;
+        
+        // Data query without search
+        dataQuery = `
+          SELECT *
+          FROM clients 
+          WHERE sales_rep_id = @param0
+          ORDER BY created_at DESC
+          OFFSET ${offset} ROWS
+          FETCH NEXT ${pageSize} ROWS ONLY
+        `;
+      }
+      
+      // Execute count query
+      const countResult = await db.query<{total: number}>(countQuery, params);
+      const total = countResult[0]?.total || 0;
+      
+      // Execute data query
+      const clients = await db.query<Client>(dataQuery, params);
+      
+      return { clients, total };
+    } catch (error) {
+      console.error('Error getting all clients by sales rep:', error);
+      throw error;
+    }
   }
 }; 
