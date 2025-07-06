@@ -1,0 +1,548 @@
+openapi: 3.0.3
+info:
+  title: Sales Microservice API
+  description: |
+    API for the Insurance Brokerage Sales Microservice that allows sales representatives to manage clients.
+  version: 1.0.0
+  contact:
+    email: support@example.com
+servers:
+  - url: http://localhost:5001
+    description: Development server
+  - url: https://api.sales.insurance-brokerage.com
+    description: Production server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        error:
+          type: string
+    
+    Client:
+      type: object
+      required:
+        - customer_type
+        - product
+        - insurance_provider
+        - client_name
+        - mobile_no
+      properties:
+        id:
+          type: string
+        introducer_code:
+          type: string
+        customer_type:
+          type: string
+        product:
+          type: string
+        policy_:
+          type: string
+        insurance_provider:
+          type: string
+        branch:
+          type: string
+        client_name:
+          type: string
+        street1:
+          type: string
+        street2:
+          type: string
+        city:
+          type: string
+        district:
+          type: string
+        province:
+          type: string
+        telephone:
+          type: string
+        mobile_no:
+          type: string
+        contact_person:
+          type: string
+        email:
+          type: string
+          format: email
+        social_media:
+          type: string
+        
+        # Document proofs
+        nic_proof:
+          type: string
+        dob_proof:
+          type: string
+        business_registration:
+          type: string
+        svat_proof:
+          type: string
+        vat_proof:
+          type: string
+        coverage_proof:
+          type: string
+        sum_insured_proof:
+          type: string
+        policy_fee_invoice:
+          type: string
+        vat_fee_debit_note:
+          type: string
+        payment_receipt_proof:
+          type: string
+        
+        # Additional text-only fields
+        ceilao_ib_file_no:
+          type: string
+        main_class:
+          type: string
+        insurer:
+          type: string
+        
+        # Document + text fields
+        policyholder_doc:
+          type: string
+        policyholder_text:
+          type: string
+        vehicle_number_doc:
+          type: string
+        vehicle_number_text:
+          type: string
+        proposal_form_doc:
+          type: string
+        proposal_form_text:
+          type: string
+        quotation_doc:
+          type: string
+        quotation_text:
+          type: string
+        cr_copy_doc:
+          type: string
+        cr_copy_text:
+          type: string
+        schedule_doc:
+          type: string
+        schedule_text:
+          type: string
+        invoice_debit_note_doc:
+          type: string
+        invoice_debit_note_text:
+          type: string
+        payment_receipt_doc:
+          type: string
+        payment_receipt_text:
+          type: string
+        nic_br_doc:
+          type: string
+        nic_br_text:
+          type: string
+        
+        # Policy details
+        policy_type:
+          type: string
+        policy_no:
+          type: string
+        policy_period_from:
+          type: string
+          format: date
+        policy_period_to:
+          type: string
+          format: date
+        coverage:
+          type: string
+        sum_insured:
+          type: number
+        
+        # Financial details
+        basic_premium:
+          type: number
+        srcc_premium:
+          type: number
+        tc_premium:
+          type: number
+        net_premium:
+          type: number
+        stamp_duty:
+          type: number
+        admin_fees:
+          type: number
+        road_safety_fee:
+          type: number
+        policy_fee:
+          type: number
+        vat_fee:
+          type: number
+        total_invoice:
+          type: number
+        debit_note:
+          type: string
+        payment_receipt:
+          type: string
+        
+        # Commission details
+        commission_type:
+          type: string
+        commission_basic:
+          type: number
+        commission_srcc:
+          type: number
+        commission_tc:
+          type: number
+        
+        # Additional fields
+        sales_rep_id:
+          type: integer
+        policies:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    
+    ClientResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Client'
+    
+    ClientsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Client'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+            hasNextPage:
+              type: boolean
+            hasPrevPage:
+              type: boolean
+    
+    CreateClientResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Client'
+    
+    DocumentUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        url:
+          type: string
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/sales/clients:
+    get:
+      tags:
+        - Clients
+      summary: Get all clients for the current sales rep
+      description: Get paginated list of all clients for the authenticated sales representative with optional search functionality
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number (default 1)
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+          description: Number of clients per page (default 10)
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term to filter clients by name, email, mobile, product, insurance provider, or policy number
+      responses:
+        '200':
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientsResponse'
+        '401':
+          description: Unauthorized - Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Not a sales representative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags:
+        - Clients
+      summary: Create a new client
+      description: Create a new insurance client (without document uploads)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        '201':
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateClientResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Not a sales representative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Client with same name and insurance provider already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/sales/clients/with-documents:
+    post:
+      tags:
+        - Clients
+      summary: Create a new client with document uploads
+      description: Create a new insurance client with document uploads
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - clientData
+              properties:
+                clientData:
+                  type: string
+                  description: JSON string containing client data
+                nic_proof:
+                  type: string
+                  format: binary
+                dob_proof:
+                  type: string
+                  format: binary
+                business_registration:
+                  type: string
+                  format: binary
+                svat_proof:
+                  type: string
+                  format: binary
+                vat_proof:
+                  type: string
+                  format: binary
+                coverage_proof:
+                  type: string
+                  format: binary
+                sum_insured_proof:
+                  type: string
+                  format: binary
+                policy_fee_invoice:
+                  type: string
+                  format: binary
+                vat_fee_debit_note:
+                  type: string
+                  format: binary
+                payment_receipt_proof:
+                  type: string
+                  format: binary
+                policyholder_doc:
+                  type: string
+                  format: binary
+                vehicle_number_doc:
+                  type: string
+                  format: binary
+                proposal_form_doc:
+                  type: string
+                  format: binary
+                quotation_doc:
+                  type: string
+                  format: binary
+                cr_copy_doc:
+                  type: string
+                  format: binary
+                schedule_doc:
+                  type: string
+                  format: binary
+                invoice_debit_note_doc:
+                  type: string
+                  format: binary
+                payment_receipt_doc:
+                  type: string
+                  format: binary
+                nic_br_doc:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Client created successfully with documents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateClientResponse'
+        '400':
+          description: Missing required fields or invalid file format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Not a sales representative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Client with same name and insurance provider already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/sales/clients/recent:
+    get:
+      tags:
+        - Clients
+      summary: Get recent clients
+      description: Get recent clients created by the current sales representative
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Number of clients to return (default 10)
+      responses:
+        '200':
+          description: List of recent clients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Client'
+        '401':
+          description: Unauthorized - Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Not a sales representative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Check if the API is running
+      security: []
+      responses:
+        '200':
+          description: API is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+                  timestamp:
+                    type: string
+                  environment:
+                    type: string 

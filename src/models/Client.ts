@@ -11,20 +11,54 @@ export interface Client {
   insurance_provider: string;
   branch?: string;
   client_name: string;
-  mobile_no: string;  // Required field
   street1?: string;
   street2?: string;
   city?: string;
   district?: string;
   province?: string;
   telephone?: string;
+  mobile_no: string;  // Required field
   contact_person?: string;
   email?: string;
   social_media?: string;
+  
   // Document proofs
   nic_proof?: string;
   dob_proof?: string;
   business_registration?: string;
+  svat_proof?: string;
+  vat_proof?: string;
+  coverage_proof?: string;
+  sum_insured_proof?: string;
+  policy_fee_invoice?: string;
+  vat_fee_debit_note?: string;
+  payment_receipt_proof?: string;
+  
+  // Additional text-only fields
+  ceilao_ib_file_no?: string;
+  main_class?: string;
+  insurer?: string;
+  
+  // Document + text fields
+  policyholder_doc?: string;
+  policyholder_text?: string;
+  vehicle_number_doc?: string;
+  vehicle_number_text?: string;
+  proposal_form_doc?: string;
+  proposal_form_text?: string;
+  quotation_doc?: string;
+  quotation_text?: string;
+  cr_copy_doc?: string;
+  cr_copy_text?: string;
+  schedule_doc?: string;
+  schedule_text?: string;
+  invoice_debit_note_doc?: string;
+  invoice_debit_note_text?: string;
+  payment_receipt_doc?: string;
+  payment_receipt_text?: string;
+  nic_br_doc?: string;
+  nic_br_text?: string;
+  
   // Policy details
   policy_type?: string;
   policy_no?: string;
@@ -32,6 +66,7 @@ export interface Client {
   policy_period_to?: string;
   coverage?: string;
   sum_insured?: number;
+  
   // Financial details
   basic_premium?: number;
   srcc_premium?: number;
@@ -43,9 +78,20 @@ export interface Client {
   policy_fee?: number;
   vat_fee?: number;
   total_invoice?: number;
+  debit_note?: string;
+  payment_receipt?: string;
+  
+  // Commission details
+  commission_type?: string;
+  commission_basic?: number;
+  commission_srcc?: number;
+  commission_tc?: number;
+  
   // Additional fields
   sales_rep_id?: number;
-  created_at?: Date; // This exists in the database
+  policies?: number;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 // Client model with database operations
